@@ -4,16 +4,16 @@
 
 #include <QApplication>
 #include <QMainWindow>
+#include "paintarea.h"
 
 #ifdef WIN32
 #include "./win32/getimage.h"
+#include <Windows.h>
 #endif
 
 #ifdef unix
 #include "./unix/getimage.h"
 #endif
-
-#include "paintarea.h"
 
 class screenshot : public QMainWindow
 {
@@ -26,10 +26,12 @@ public:
     QImage       image;
     PaintArea    *area;                //画布指针
 
+    int cut();
     int GetImage(QImage *pimage,int cursor=0);
 
-//public slots:
-//signals:
+protected:
+signals:
+public slots:
 };
 
 #endif // SCREENSHOT_H

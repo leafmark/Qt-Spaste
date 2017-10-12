@@ -9,6 +9,7 @@
 #include <QPainter>          //绘图头文件
 #include "QDebug"
 #include <QFileDialog>          //文件对话框头文件
+#include <QStandardPaths>
 
 class PaintArea : public QWidget
 {

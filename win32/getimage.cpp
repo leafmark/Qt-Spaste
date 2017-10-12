@@ -15,11 +15,12 @@ int shotcut(QImage *pimage,int cursor)
     LONG Width=re.right-re.left;
     LONG Height=re.bottom-re.top;
 
-    hMemDc=CreateCompatibleDC(pdeskdc);                                    //创建截图的内存画板
+    hMemDc=CreateCompatibleDC(pdeskdc);               //创建截图的内存画板
     hBmp=CreateCompatibleBitmap(pdeskdc,Width,Height);//创建截图的位图对象
     hOldBmp=(HBITMAP)SelectObject(hMemDc,hBmp);
 
-    BitBlt(hMemDc,0,0,re.right-re.left,re.bottom-re.top,pdeskdc,0,0,SRCCOPY);//拷贝(桌面窗口的内存画板->截图的内存画板)
+    BitBlt(hMemDc,0,0,re.right-re.left,re.bottom-re.top,
+           pdeskdc,0,0,SRCCOPY);//拷贝(桌面窗口的内存画板->截图的内存画板)
 
     if (cursor)
     {
@@ -27,7 +28,7 @@ int shotcut(QImage *pimage,int cursor)
         GetCursorPos(&po);                 //获取光标位置
         SetCursor(LoadCursor(NULL, IDC_ARROW));
         HICON hinco = (HICON)GetCursor();  //获取光标图标
-        DrawIcon(hMemDc,po.x,po.y,hinco);                                        //绘制(光标图标->截图的内存画板)
+        DrawIcon(hMemDc,po.x,po.y,hinco);  //绘制(光标图标->截图的内存画板)
     }
 
     qt_fromWinHBITMAP(hMemDc,hBmp,Width,Height,pimage);

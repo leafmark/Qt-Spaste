@@ -26,12 +26,15 @@ SOURCES += \
         main.cpp \
         dialog_set.cpp \
         screenshot.cpp \
-        paintarea.cpp
+        paintarea.cpp \
+    win32/ShortCut.cpp
 
 HEADERS += \
         dialog_set.h \
         screenshot.h \
-        paintarea.h
+        paintarea.h \
+    main.h \
+    win32/ShortCut.h
 
 win32 {
     HEADERS += \

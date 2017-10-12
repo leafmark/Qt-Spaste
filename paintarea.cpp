@@ -1,4 +1,4 @@
-#include "paintarea.h"
+﻿#include "paintarea.h"
 
 //构造函数
 PaintArea::PaintArea(QWidget *parent) : QWidget(parent)
@@ -107,7 +107,8 @@ void PaintArea::get_image_gray()
             graydata[i+3] = 255;                //A
         }
     }
-    this->image_gray = QImage(graydata,this->width,this->height,bytePerLine,QImage::Format_ARGB32);
+    this->image_gray = QImage(graydata,this->width,this->height,
+                              bytePerLine,QImage::Format_ARGB32);
 }
 
 //*************************************
@@ -117,7 +118,7 @@ void PaintArea::mousePressEvent(QMouseEvent *event)     //鼠标按下事件
     {
         if(this->IsSelectd == false)
         {
-            this->lastPoint = event->pos();                     //获得鼠标指针的当前坐标作为起始坐标
+            this->lastPoint = QCursor::pos();                     //获得鼠标指针的当前坐标作为起始坐标
             this->endPoint = this->lastPoint;
             this->IsSelect = true;
         }
@@ -130,7 +131,7 @@ void PaintArea::mouseReleaseEvent(QMouseEvent *event)       //鼠标释放事件
     {
         if(this->IsSelect == true)
         {
-            this->endPoint = event->pos();
+            this->endPoint = QCursor::pos();
             this->IsSelect = false;
             this->IsSelectd = true;
             this->update();
@@ -145,7 +146,7 @@ void PaintArea::mouseReleaseEvent(QMouseEvent *event)       //鼠标释放事件
         }
         else
         {
-            qApp->quit();   //退出程序
+            this->parentWidget()->hide();
         }
     }
 }
@@ -156,7 +157,7 @@ void PaintArea::mouseMoveEvent(QMouseEvent *event)      //鼠标移动事件
      {
         if(this->IsSelect == true)
         {
-             this->endPoint = event->pos();                   //获得鼠标指针的当前坐标作为终止坐标
+             this->endPoint = QCursor::pos();                   //获得鼠标指针的当前坐标作为终止坐标
              this->update();
        //      qDebug()<<"endPoint:"<<this->endPoint<<endl;
         }
@@ -170,7 +171,8 @@ void PaintArea::mouseDoubleClickEvent(QMouseEvent *event)
     {
         QStringList path = QStandardPaths::standardLocations(QStandardPaths::DesktopLocation);
         QString fileName=path.join(";")+"/new.png";
-                fileName = QFileDialog::getSaveFileName(this,(u8"保存截图"),fileName,"PNG(*.png);;JPEG(*.jpg);;BMP(*.bmp)");
+                fileName = QFileDialog::getSaveFileName(this,(u8"保存截图"),fileName,
+                                                        "PNG(*.png);;JPEG(*.jpg);;BMP(*.bmp)");
 
         if (!fileName.isNull())
         {
@@ -179,7 +181,7 @@ void PaintArea::mouseDoubleClickEvent(QMouseEvent *event)
 
                 if (s) { qDebug()<<"image info:"<<this->image_Rect<<endl; }
 
-                qApp->quit();   //保存后退出程序
+                this->parentWidget()->hide();
         }
     }
 }
