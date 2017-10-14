@@ -11,8 +11,6 @@ int shotcut(QImage *pimage,int cursor)
 {
     QScreen *screen = QGuiApplication::primaryScreen();
     *pimage = screen->grabWindow(0).toImage();
-    qDebug()<<"pimage->width()"<<pimage->width()<<endl;
-    qDebug()<<"pimage->height()"<<pimage->height()<<endl;
 /*
     Window	desktop;
     Display * dsp;

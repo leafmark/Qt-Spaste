@@ -20,28 +20,33 @@ public:
     ~PaintArea();
 
 public:
-    int width,height;
-    bool setImage(QImage new_image);                   //设置新图片
-    void get_image_gray();                             //设置新图片
+    bool setImage(QImage *new_image);               //设置新图片
+    void get_image_gray();                          //灰度图片
+    void save_image();                              //保存图片
 
 protected:
     void paint();                                    //绘图事件
-    void paintEvent(QPaintEvent *);                      //重绘事件
+    void paintEvent(QPaintEvent *);                  //重绘事件
 
-    void mousePressEvent(QMouseEvent *);                 //鼠标按下事件
-    void mouseReleaseEvent(QMouseEvent *);              //鼠标释放事件
+    void mousePressEvent(QMouseEvent *);             //鼠标按下事件
+    void mouseReleaseEvent(QMouseEvent *);           //鼠标释放事件
     void mouseDoubleClickEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *);                  //鼠标移动事件
+    void mouseMoveEvent(QMouseEvent *);              //鼠标移动事件
 
 private:
-    QImage image_color;                                //QImage 类对象，用于在其上绘图
-    QImage image_gray;                                 //QImage 类对象，用于在其上绘图
-    QImage image_paint;                                 //QImage 类对象，用于在其上绘图
-    QImage image_Rect;                                 //QImage 类对象，用于在其上绘图
+    QImage *image_color;                 //彩图
+    QImage *image_gray;                  //灰度图
+    QImage *image_paint;                 //画布图
 
+    int width,height;
     QPoint lastPoint,endPoint;               //定义两个坐标对象存放鼠标指针的前后两个坐标
-    bool IsSelect=false;                     //是否正在选择区域
-    bool IsSelectd=false;                    //是否已选中区域
+    bool IsSelecting=false;                     //是否正在选择区域
+    bool IsSelected=false;                    //是否已选中区域
+
+    int Selectx;
+    int Selecty;
+    int Selectw;
+    int Selecth;
 
     int s1x,s1y;
     int s2x,s2y;

@@ -1,6 +1,6 @@
 ﻿#include "./win32/getimage.h"
 
-int shotcut(QImage *pimage,int cursor)
+bool shotcut(QImage *image, int cursor)
 {
     HWND pDesktop;		//桌面窗口句柄
     RECT re;			//桌面窗口尺寸
@@ -31,9 +31,9 @@ int shotcut(QImage *pimage,int cursor)
         DrawIcon(hMemDc,po.x,po.y,hinco);  //绘制(光标图标->截图的内存画板)
     }
 
-    qt_fromWinHBITMAP(hMemDc,hBmp,Width,Height,pimage);
+    qt_fromWinHBITMAP(hMemDc,hBmp,Width,Height,image);
 
-    return 0;
+    return true;
 }
 
 static int qt_fromWinHBITMAP(HDC hdc, HBITMAP bitmap, int w, int h, QImage *pimage)
@@ -48,7 +48,7 @@ static int qt_fromWinHBITMAP(HDC hdc, HBITMAP bitmap, int w, int h, QImage *pima
     bmi.bmiHeader.biCompression = BI_RGB;
     bmi.bmiHeader.biSizeImage   = w * h * 4;
 
-    QImage image(w, h, QImage::Format_ARGB32_Premultiplied);
+    QImage image(w, h, QImage::Format_ARGB32);
     if (image.isNull())
        return -1;
 

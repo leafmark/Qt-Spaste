@@ -7,8 +7,6 @@
 #include <QHash>
 #include <QAbstractNativeEventFilter>
 #include <QDebug>
-#include <windows.h>
-#include <comdef.h>
 #include "screenshot.h"
 
 class MyWinEventFilter;
@@ -18,8 +16,10 @@ class MyGlobalShortCut : public QObject
 {
     Q_OBJECT
 public:
-    MyGlobalShortCut(QString key, screenshot app);
+    MyGlobalShortCut(QString key, screenshot *screenshot);
     ~MyGlobalShortCut();
+
+    screenshot *shortcut;
 
     void activateShortcut();
     bool registerHotKey();
@@ -27,11 +27,10 @@ public:
 
     QHash<QPair<quint32, quint32>, MyGlobalShortCut*> shortcuts;
 private:
-    screenshot app;
-    QApplication *m_app;
+    QApplication     *m_app;
     MyWinEventFilter *m_filter;
-    QKeySequence m_key;
-    Qt::Key key;
+    QKeySequence      m_key;
+    Qt::Key               key;
     Qt::KeyboardModifiers mods;
     static quint32 nativeKeycode(Qt::Key keycode);
     static quint32 nativeModifiers(Qt::KeyboardModifiers modifiers);
@@ -46,7 +45,7 @@ class MyWinEventFilter : public QAbstractNativeEventFilter
 public:
     MyWinEventFilter(MyGlobalShortCut *shortcut);
     ~MyWinEventFilter();
-    virtual bool nativeEventFilter(const QByteArray &eventType, void *message, long *);
+    virtual bool nativeEventFilter(const QByteArray &eventType, void *message, long *result);
 private:
     MyGlobalShortCut *m_shortcut;
 };

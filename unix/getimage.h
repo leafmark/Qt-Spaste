@@ -7,6 +7,8 @@
 #include <QScreen>
 #include <QPixmap>
 #include <QImage>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
 
 int shotcut(QImage *pimage, int cursor=0);
 

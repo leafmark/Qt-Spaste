@@ -1,9 +1,9 @@
 ﻿
 #include "./win32/ShortCut.h"
 
-MyGlobalShortCut::MyGlobalShortCut(QString key, screenshot app)
+MyGlobalShortCut::MyGlobalShortCut(QString key, screenshot *screenshot)
 {
-   //Q_UNUSED(app);
+   this->shortcut = screenshot;
    m_key = QKeySequence(key);
    m_filter = new MyWinEventFilter(this);
    m_app->installNativeEventFilter(m_filter);
@@ -18,7 +18,7 @@ MyGlobalShortCut::~MyGlobalShortCut()
 
 void MyGlobalShortCut::activateShortcut()
 {
-   app.cut();
+   this->shortcut->cut();
 }
 
 bool  MyGlobalShortCut::registerHotKey()
@@ -27,12 +27,11 @@ bool  MyGlobalShortCut::registerHotKey()
                                    Qt::AltModifier | Qt::MetaModifier;
    key  = m_key.isEmpty() ? Qt::Key(0) : Qt::Key((m_key[0] ^ allMods) & m_key[0]);
    mods = m_key.isEmpty() ? Qt::KeyboardModifiers(0) : Qt::KeyboardModifiers(m_key[0] & allMods);
-   const quint32 nativeKey = nativeKeycode(key);
+   const quint32 nativeKey  = nativeKeycode(key);
    const quint32 nativeMods = nativeModifiers(mods);
-
    shortcuts.insert(qMakePair(nativeKey, nativeMods),this);
-   return RegisterHotKey(0, nativeMods ^ nativeKey, nativeMods, nativeKey);
 
+   return RegisterHotKey(0, nativeMods ^ nativeKey, nativeMods, nativeKey);
 }
 
 bool  MyGlobalShortCut::unregisterHotKey()
@@ -218,9 +217,10 @@ MyWinEventFilter::~MyWinEventFilter()
 {
 }
 
-bool MyWinEventFilter::nativeEventFilter(const QByteArray &eventType, void *message, long *)
+bool MyWinEventFilter::nativeEventFilter(const QByteArray &eventType, void *message, long *result)
 {
-   if(eventType == "windows_generic_MSG"||eventType == "windows_dispatcher_MSG" )
+    Q_UNUSED(result);
+    if(eventType == "windows_generic_MSG"||eventType == "windows_dispatcher_MSG" )
     {
         MSG *msg = static_cast<MSG *>(message);
         if(msg->message == WM_HOTKEY)
@@ -230,7 +230,7 @@ bool MyWinEventFilter::nativeEventFilter(const QByteArray &eventType, void *mess
             bool res = m_shortcut->shortcuts.value(qMakePair(keycode, modifiers));
             if(res)
             {
-                qDebug() << "test" <<endl;
+                qDebug() << "WM_HOTKEY" <<endl;
                 m_shortcut ->activateShortcut();
                 return true;
             }

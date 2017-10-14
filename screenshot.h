@@ -4,11 +4,12 @@
 
 #include <QApplication>
 #include <QMainWindow>
+#include <Qlabel>
 #include "paintarea.h"
 
 #ifdef WIN32
-#include "./win32/getimage.h"
 #include <Windows.h>
+#include "./win32/getimage.h"
 #endif
 
 #ifdef unix
@@ -23,11 +24,11 @@ public:
     screenshot(QMainWindow *parent = 0);
     ~screenshot();
 
-    QImage       image;
+    QImage       *image;
     PaintArea    *area;                //画布指针
 
     int cut();
-    int GetImage(QImage *pimage,int cursor=0);
+    bool GetImage(QImage *image,bool cursor=true);
 
 protected:
 signals:

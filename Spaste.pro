@@ -26,32 +26,36 @@ SOURCES += \
         main.cpp \
         dialog_set.cpp \
         screenshot.cpp \
-        paintarea.cpp \
-    win32/ShortCut.cpp
+        paintarea.cpp
 
 HEADERS += \
         dialog_set.h \
         screenshot.h \
         paintarea.h \
-    main.h \
-    win32/ShortCut.h
+        main.h
 
 win32 {
     HEADERS += \
-        ./win32/getimage.h
+        win32/getimage.h \
+        win32/ShortCut.h
 
     SOURCES += \
-        ./win32/getimage.cpp
+        win32/getimage.cpp \
+        win32/ShortCut.cpp
 }
 unix {
+    QT += x11extras
+
     HEADERS += \
-        ./unix/getimage.h
+        unix/getimage.h \
+        unix/ShortCut.h
 
     SOURCES += \
-        ./unix/getimage.cpp
+        unix/getimage.cpp \
+        unix/ShortCut.cpp
 
     LIBS +=  -Wl,--rpath=./,--rpath=./lib/,--enable-new-dtags   #运行时链接库的路径
-
+    LIBS +=  -lX11
  #   LIBS +=  -L./  -ld     #编译时动态链接库的路径：./  ，文件：libd.so
  #   LIBS += -z nodefaultlib #不搜索默认lib
 }

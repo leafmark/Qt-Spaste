@@ -3,6 +3,8 @@
 //构造函数
 PaintArea::PaintArea(QWidget *parent) : QWidget(parent)
 {
+    this->image_gray  = new QImage;
+    this->image_paint = new QImage;
 }
 
 PaintArea::~PaintArea()
@@ -11,9 +13,9 @@ PaintArea::~PaintArea()
 
 void PaintArea::paint()     //绘图
 {
-    this->image_paint = this->image_gray;
+    *this->image_paint = *this->image_gray;
 
-    if(this->IsSelect||this->IsSelectd)
+    if(this->IsSelecting||this->IsSelected)
     {
         //计算选择框 起点、宽、高
         int t;
@@ -29,12 +31,14 @@ void PaintArea::paint()     //绘图
         int h = yb-ya+1;
    //         qDebug()<<"rect:"<<this->lastPoint<<this->endPoint<<w<<h<<endl;
 
+        this->Selectx = xa;
+        this->Selecty = ya;
+        this->Selecty = w;
+        this->Selecty = h;
+
         //绘图选择框图像
-        this->image_Rect = QImage(w,h,QImage::Format_ARGB32);
-        QPainter thepaint(&this->image_paint);
-        QPainter paintRect(&this->image_Rect);
-            thepaint.drawImage(xa,ya,this->image_color,xa,ya,w,h);
-            paintRect.drawImage(0,0,this->image_color,xa,ya,w,h);
+        QPainter thepaint(this->image_paint);
+            thepaint.drawImage(xa,ya,*this->image_color,xa,ya,w,h);
 
         //绘制选择框
         QPen pen = QPen(Qt::blue);
@@ -70,57 +74,88 @@ void PaintArea::paint()     //绘图
             thepaint.drawRect(this->s7x,this->s7y,4,4);
             thepaint.drawRect(this->s8x,this->s8y,4,4);
     }
-
 }
 
 void PaintArea::paintEvent(QPaintEvent *)   //重绘事件
 {
     this->paint();
     QPainter paint(this);
-    paint.drawImage(0,0,this->image_paint);
+    paint.drawImage(0,0,*this->image_paint);
 }
 
-bool PaintArea::setImage(QImage new_image)   //设置新图片
+bool PaintArea::setImage(QImage *new_image)   //设置新图片
 {
-    this->image_color = new_image;
-    this->width = this->image_color.width();
-    this->height = this->image_color.height();
+     this->image_color =  new_image;
+    *this->image_gray  = *new_image;
+    *this->image_paint = *new_image;
+
+    this->width  = new_image->width();
+    this->height = new_image->height();
     this->get_image_gray();
 
-    return 0;
+    return true;
 }
 
 void PaintArea::get_image_gray()
 {
-    int byteCount=this->image_color.byteCount();             //总字节数
-    int bytePerLine=this->image_color.bytesPerLine();        //每行字节数
-    int bytePerPixel=bytePerLine/this->width;               //每像素4字节数
-    uchar *bit = image_color.bits();                         //数据指针
-    uchar *graydata=new unsigned char[byteCount];           //存储处理后的数据
+    int byteCount   = this->image_color->byteCount();             //总字节数
+    int bytePerLine = this->image_color->bytesPerLine();        //每行字节数
+    int bitPerPixel = bytePerLine/this->width;                 //每像素位数
+    uchar *colorbit = this->image_color->bits();                //数据指针
+    uchar *graybit  = this->image_gray->bits();
 
-    for(int i=0;i<byteCount;i+=bytePerPixel)
+    for(int i=0;i<byteCount;i+=bitPerPixel)
     {
         {
-            graydata[i+0] = (*(bit+i+0))/1.8;   //B
-            graydata[i+1] = (*(bit+i+1))/1.8;   //G
-            graydata[i+2] = (*(bit+i+2))/1.8;   //R
-            graydata[i+3] = 255;                //A
+            graybit[i+0] = (colorbit[i+0])/1.8;   //B
+            graybit[i+1] = (colorbit[i+1])/1.8;   //G
+            graybit[i+2] = (colorbit[i+2])/1.8;   //R
+            graybit[i+3] = 255;                   //A
         }
     }
-    this->image_gray = QImage(graydata,this->width,this->height,
-                              bytePerLine,QImage::Format_ARGB32);
 }
 
+void PaintArea::save_image()
+{
+    QStringList path = QStandardPaths::standardLocations(QStandardPaths::DesktopLocation);
+    QString fileName=path.join(";")+"/new.png";
+            fileName = QFileDialog::getSaveFileName(this,(u8"保存截图"),fileName,
+                                                    "PNG(*.png);;JPEG(*.jpg);;BMP(*.bmp)");
+    if (!fileName.isNull())
+    {
+        //保留选择框图像
+        QImage Rect = QImage(this->Selectx,this->Selecty,QImage::Format_ARGB32);
+
+        QPainter paintRect(&Rect);
+            paintRect.drawImage(0,0,*this->image_color,this->Selectx,this->Selecty,
+                            this->Selectw,this->Selecth);
+
+        qDebug()<<"save image:"<<Rect.save(fileName)<<fileName<<endl;
+    }
+    this->parentWidget()->hide();
+    this->IsSelected  = false;
+    this->IsSelecting = false;
+}
 //*************************************
 void PaintArea::mousePressEvent(QMouseEvent *event)     //鼠标按下事件
 {
-    if(event->button() == Qt::LeftButton)                    //当鼠标左键按下
+    if(event->button() == Qt::LeftButton)               //当鼠标左键按下
     {
-        if(this->IsSelectd == false)
+        if(!this->IsSelected)
         {
-            this->lastPoint = QCursor::pos();                     //获得鼠标指针的当前坐标作为起始坐标
+            this->lastPoint = QCursor::pos();           //获得鼠标指针的当前坐标作为起始坐标
             this->endPoint = this->lastPoint;
-            this->IsSelect = true;
+            this->IsSelecting = true;
+        }
+    }
+    if(event->button() == Qt::RightButton)                    //当鼠标右键按下
+    {
+        if(this->IsSelected)
+        {
+            this->IsSelected = false;
+            this->update();
+        } else {
+            this->parentWidget()->hide();
         }
     }
 }
@@ -129,24 +164,12 @@ void PaintArea::mouseReleaseEvent(QMouseEvent *event)       //鼠标释放事件
 {
     if(event->button() == Qt::LeftButton)                     //如果鼠标左键释放
     {
-        if(this->IsSelect == true)
+        if(this->IsSelecting)
         {
             this->endPoint = QCursor::pos();
-            this->IsSelect = false;
-            this->IsSelectd = true;
+            this->IsSelecting = false;
+            this->IsSelected  = true;
             this->update();
-        }
-    }
-    if(event->button() == Qt::RightButton)                    //当鼠标右键按下
-    {
-        if(this->IsSelectd == true)
-        {
-            this->IsSelectd = false;
-            this->update();
-        }
-        else
-        {
-            this->parentWidget()->hide();
         }
     }
 }
@@ -155,33 +178,18 @@ void PaintArea::mouseMoveEvent(QMouseEvent *event)      //鼠标移动事件
 {
     if(event->buttons()&Qt::LeftButton)                 //如果鼠标左键按着的同时移动鼠标
      {
-        if(this->IsSelect == true)
+        if(this->IsSelecting)
         {
-             this->endPoint = QCursor::pos();                   //获得鼠标指针的当前坐标作为终止坐标
+             this->endPoint = QCursor::pos();           //获得鼠标指针的当前坐标作为终止坐标
              this->update();
-       //      qDebug()<<"endPoint:"<<this->endPoint<<endl;
         }
      }
 }
 
 void PaintArea::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    if (event) {};
-    if(this->IsSelectd == true)
+    if(this->IsSelected)
     {
-        QStringList path = QStandardPaths::standardLocations(QStandardPaths::DesktopLocation);
-        QString fileName=path.join(";")+"/new.png";
-                fileName = QFileDialog::getSaveFileName(this,(u8"保存截图"),fileName,
-                                                        "PNG(*.png);;JPEG(*.jpg);;BMP(*.bmp)");
-
-        if (!fileName.isNull())
-        {
-            bool s = this->image_Rect.save(fileName);
-                qDebug()<<"save image:"<<s<<fileName<<endl;
-
-                if (s) { qDebug()<<"image info:"<<this->image_Rect<<endl; }
-
-                this->parentWidget()->hide();
-        }
+        this->save_image();
     }
 }

@@ -22,7 +22,7 @@
 #include <tchar.h>
 using namespace Gdiplus;
 
-int shotcut(QImage *pimage, int cursor=0);
+bool shotcut(QImage *image, int cursor=0);
 static int qt_fromWinHBITMAP(HDC hdc, HBITMAP bitmap, int w, int h, QImage *pimage);
 /*
 extern int Globle_HotKeyId;
