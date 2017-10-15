@@ -1,13 +1,8 @@
-﻿
-#include "./win32/ShortCut.h"
+﻿#include "./win32/ShortCut.h"
 
-MyGlobalShortCut::MyGlobalShortCut(QString key, screenshot *screenshot)
+MyGlobalShortCut::MyGlobalShortCut(QString key)
 {
-   this->shortcut = screenshot;
-   m_key = QKeySequence(key);
-   m_filter = new MyWinEventFilter(this);
-   m_app->installNativeEventFilter(m_filter);
-
+   this->m_key = QKeySequence(key);
    registerHotKey();
 }
 
@@ -16,17 +11,14 @@ MyGlobalShortCut::~MyGlobalShortCut()
    unregisterHotKey();
 }
 
-void MyGlobalShortCut::activateShortcut()
-{
-   this->shortcut->cut();
-}
-
 bool  MyGlobalShortCut::registerHotKey()
 {
    Qt::KeyboardModifiers allMods = Qt::ShiftModifier | Qt::ControlModifier|
                                    Qt::AltModifier | Qt::MetaModifier;
-   key  = m_key.isEmpty() ? Qt::Key(0) : Qt::Key((m_key[0] ^ allMods) & m_key[0]);
-   mods = m_key.isEmpty() ? Qt::KeyboardModifiers(0) : Qt::KeyboardModifiers(m_key[0] & allMods);
+   key  = this->m_key.isEmpty() ? Qt::Key(0) :
+                                  Qt::Key((this->m_key[0] ^ allMods) & this->m_key[0]);
+   mods = this->m_key.isEmpty() ? Qt::KeyboardModifiers(0) :
+                                  Qt::KeyboardModifiers(this->m_key[0] & allMods);
    const quint32 nativeKey  = nativeKeycode(key);
    const quint32 nativeMods = nativeModifiers(mods);
    shortcuts.insert(qMakePair(nativeKey, nativeMods),this);
@@ -39,6 +31,39 @@ bool  MyGlobalShortCut::unregisterHotKey()
    return UnregisterHotKey(0, (quint32)nativeModifiers(mods) ^ (quint32)nativeKeycode(key));
 }
 
+//====================================================
+MyWinEventFilter::MyWinEventFilter(MyGlobalShortCut *shortcut)
+{
+    this->m_shortcut = shortcut;
+}
+
+MyWinEventFilter::~MyWinEventFilter()
+{
+}
+
+bool MyWinEventFilter::nativeEventFilter(const QByteArray &eventType, void *message, long *result)
+{
+    Q_UNUSED(result);
+    if(eventType == "windows_generic_MSG"||eventType == "windows_dispatcher_MSG" )
+    {
+        MSG *msg = static_cast<MSG *>(message);
+        if(msg->message == WM_HOTKEY)
+        {
+            qDebug() << "WM_HOTKEY" <<endl;
+            const quint32 keycode = HIWORD(msg->lParam);
+            const quint32 modifiers = LOWORD(msg->lParam);
+            if( m_shortcut->shortcuts.value(qMakePair(keycode, modifiers)) )
+            {
+                screenshot *n_screenshot = new screenshot;
+                n_screenshot->shot();
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+//====================================================
 quint32 MyGlobalShortCut::nativeKeycode(Qt::Key key)
 {
    switch (key)
@@ -205,37 +230,4 @@ quint32 MyGlobalShortCut::nativeModifiers(Qt::KeyboardModifiers modifiers)
    //if (modifiers & Qt::KeypadModifier)
    //if (modifiers & Qt::GroupSwitchModifier)
    return native;
-}
-
-
-MyWinEventFilter::MyWinEventFilter(MyGlobalShortCut *shortcut)
-    : m_shortcut(shortcut)
-{
-}
-
-MyWinEventFilter::~MyWinEventFilter()
-{
-}
-
-bool MyWinEventFilter::nativeEventFilter(const QByteArray &eventType, void *message, long *result)
-{
-    Q_UNUSED(result);
-    if(eventType == "windows_generic_MSG"||eventType == "windows_dispatcher_MSG" )
-    {
-        MSG *msg = static_cast<MSG *>(message);
-        if(msg->message == WM_HOTKEY)
-        {
-            const quint32 keycode = HIWORD(msg->lParam);
-            const quint32 modifiers = LOWORD(msg->lParam);
-            bool res = m_shortcut->shortcuts.value(qMakePair(keycode, modifiers));
-            if(res)
-            {
-                qDebug() << "WM_HOTKEY" <<endl;
-                m_shortcut ->activateShortcut();
-                return true;
-            }
-        }
-
-    }
-    return false;
 }

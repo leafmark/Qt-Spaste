@@ -24,10 +24,10 @@ public:
     screenshot(QMainWindow *parent = 0);
     ~screenshot();
 
-    QImage       *image;
-    PaintArea    *area;                //画布指针
+    QImage       image;
+    PaintArea    area;                //画布
 
-    int cut();
+    int shot();
     bool GetImage(QImage *image,bool cursor=true);
 
 protected:

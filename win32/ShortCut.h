@@ -12,16 +12,12 @@
 class MyWinEventFilter;
 class MyGlobalShortCut;
 
-class MyGlobalShortCut : public QObject
+class MyGlobalShortCut
 {
-    Q_OBJECT
 public:
-    MyGlobalShortCut(QString key, screenshot *screenshot);
+    MyGlobalShortCut(QString key);
     ~MyGlobalShortCut();
 
-    screenshot *shortcut;
-
-    void activateShortcut();
     bool registerHotKey();
     bool unregisterHotKey();
 
@@ -34,10 +30,6 @@ private:
     Qt::KeyboardModifiers mods;
     static quint32 nativeKeycode(Qt::Key keycode);
     static quint32 nativeModifiers(Qt::KeyboardModifiers modifiers);
-
-protected:
-signals:
-public slots:
 };
 
 class MyWinEventFilter : public QAbstractNativeEventFilter

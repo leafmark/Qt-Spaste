@@ -35,18 +35,15 @@ protected:
 
 private:
     QImage *image_color;                 //彩图
-    QImage *image_gray;                  //灰度图
-    QImage *image_paint;                 //画布图
-
+    QImage image_gray;                  //灰度图
+    QImage image_paint;                 //画布图
     int width,height;
-    QPoint lastPoint,endPoint;               //定义两个坐标对象存放鼠标指针的前后两个坐标
-    bool IsSelecting=false;                     //是否正在选择区域
-    bool IsSelected=false;                    //是否已选中区域
 
-    int Selectx;
-    int Selecty;
-    int Selectw;
-    int Selecth;
+    QPoint lastPoint,endPoint;               //定义两个坐标对象存放鼠标指针的前后两个坐标
+    bool IsSelecting;                     //是否正在选择区域
+    bool IsSelected;                    //是否已选中区域
+    int Slx,Sly;
+    int Slw,Slh;
 
     int s1x,s1y;
     int s2x,s2y;

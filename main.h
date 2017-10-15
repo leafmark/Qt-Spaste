@@ -3,9 +3,7 @@
 #pragma once
 
 #include <QApplication>
-#include "screenshot.h"
 #include "dialog_set.h"
-#include "vld.h"
 
 #ifdef WIN32
 #include "./win32/ShortCut.h"
