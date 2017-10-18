@@ -32,7 +32,7 @@ bool  MyGlobalShortCut::unregisterHotKey()
 }
 
 //====================================================
-MyWinEventFilter::MyWinEventFilter(MyGlobalShortCut *shortcut)
+MyWinEventFilter::MyWinEventFilter(shortcut(__null))
 {
     this->m_shortcut = shortcut;
 }

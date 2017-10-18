@@ -1,35 +1,8 @@
-﻿
-#include "./unix/ShortCut.h"
+﻿#include "./unix/ShortCut.h"
 
-static int (*original_x_errhandler)(Display* display, XErrorEvent* event);
-
-static int qxt_x_errhandler(Display* display, XErrorEvent *event)
+MyGlobalShortCut::MyGlobalShortCut(QString key)
 {
-    Q_UNUSED(display);
-    switch (event->error_code)
-    {
-        case BadAccess:
-        case BadValue:
-        case BadWindow:
-            if (event->request_code == 33 /* X_GrabKey */ ||
-                event->request_code == 34 /* X_UngrabKey */)
-            {
-                //TODO:
-                //char errstr[256];
-                //XGetErrorText(dpy, err->error_code, errstr, 256);
-            }
-        default:
-            return 0;
-    }
-}
-
-MyGlobalShortCut::MyGlobalShortCut(QString key, screenshot *shot)
-{
-    Q_UNUSED(shot);
-    m_key = QKeySequence(key);
-    m_filter = new MyWinEventFilter(this);
-    m_app->installNativeEventFilter(m_filter);
-
+    this->m_key = QKeySequence(key);
     registerHotKey();
 }
 
@@ -38,30 +11,28 @@ MyGlobalShortCut::~MyGlobalShortCut()
     unregisterHotKey();
 }
 
-void MyGlobalShortCut::activateShortcut()
-{
-   shot.cut();
-}
-
 bool  MyGlobalShortCut::registerHotKey()
 {
    Qt::KeyboardModifiers allMods = Qt::ShiftModifier | Qt::ControlModifier|
                                    Qt::AltModifier | Qt::MetaModifier;
-   key  = m_key.isEmpty() ? Qt::Key(0) : Qt::Key((m_key[0] ^ allMods) & m_key[0]);
-   mods = m_key.isEmpty() ? Qt::KeyboardModifiers(0) : Qt::KeyboardModifiers(m_key[0] & allMods);
-   const quint32 nativeKey  = nativeKeycode(key);
-   const quint32 nativeMods = nativeModifiers(mods);
+   this->key  = this->m_key.isEmpty() ? Qt::Key(0) :
+                                        Qt::Key((this->m_key[0] ^ allMods) & this->m_key[0]);
+   this->mods = this->m_key.isEmpty() ? Qt::KeyboardModifiers(0) :
+                                        Qt::KeyboardModifiers(this->m_key[0] & allMods);
+   const quint32 nativeKey  = nativeKeycode(this->key);
+   const quint32 nativeMods = nativeModifiers(this->mods);
 
    Display* display = QX11Info::display();
    Window window = QX11Info::appRootWindow();
    Bool owner = True;
-   int pointer = GrabModeAsync;
+   int pointer  = GrabModeAsync;
    int keyboard = GrabModeAsync;
 
-   original_x_errhandler = XSetErrorHandler(qxt_x_errhandler);
    XGrabKey(display, nativeKey, nativeMods, window, owner, pointer, keyboard);
    XGrabKey(display, nativeKey, nativeMods | Mod2Mask, window, owner, pointer, keyboard); // allow numlock
    XSync(display, False);
+
+   original_x_errhandler = XSetErrorHandler(qxt_x_errhandler);
    XSetErrorHandler(original_x_errhandler);
 
    shortcuts.insert(qMakePair(nativeKey, nativeMods),this);
@@ -112,8 +83,8 @@ quint32 MyGlobalShortCut::nativeModifiers(Qt::KeyboardModifiers modifiers)
 }
 //==============================================
 MyWinEventFilter::MyWinEventFilter(MyGlobalShortCut *shortcut)
-    : m_shortcut(shortcut)
 {
+    this->m_shortcut = shortcut;
 }
 
 MyWinEventFilter::~MyWinEventFilter()
@@ -122,12 +93,48 @@ MyWinEventFilter::~MyWinEventFilter()
 
 bool MyWinEventFilter::nativeEventFilter(const QByteArray &eventType, void *message, long *result)
 {
-   if (eventType == "xcb_generic_event_t") {
-       XEvent* msg = static_cast<XEvent*>(message);
+   if (eventType == "xcb_generic_event_t")
+   {
+       xcb_generic_event_t* event = static_cast<xcb_generic_event_t *>(message);
 
-       m_shortcut ->activateShortcut();
-       qDebug() << "test" << msg <<endl;
-       return true;
+       if ( (event->response_type & ~0x80)==XCB_KEY_PRESS )
+       {
+            qDebug() << "XCB_HOTKEY" <<endl;
+
+            xcb_button_press_event_t *press = (xcb_button_press_event_t *)event;
+
+            const quint32 keycode = press->detail;
+            const quint32 modifiers = press->state;
+            if( m_shortcut->shortcuts.value(qMakePair(keycode, modifiers)) )
+            {
+                screenshot *n_screenshot = new screenshot;
+                n_screenshot->shot();
+                return true;
+            }
+            return true;
+       }
    }
+// XK_Tab
    return false;
+}
+
+//==============================================
+static int qxt_x_errhandler(Display* display, XErrorEvent *event)
+{
+    Q_UNUSED(display);
+    switch (event->error_code)
+    {
+        case BadAccess:
+        case BadValue:
+        case BadWindow:
+            if (event->request_code == 33 /* X_GrabKey */ ||
+                event->request_code == 34 /* X_UngrabKey */)
+            {
+                //TODO:
+                //char errstr[256];
+                //XGetErrorText(dpy, err->error_code, errstr, 256);
+            }
+        default:
+            return 0;
+    }
 }

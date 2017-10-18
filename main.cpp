@@ -4,8 +4,8 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-//    Dialog_set w;
-//    w.show();
+    Dialog_set w;
+    w.showMinimized();
 
     QString key = "CTRL+SHIFT+D";
     MyGlobalShortCut *HotKeyId = new MyGlobalShortCut(key);

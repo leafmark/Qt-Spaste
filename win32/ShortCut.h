@@ -38,8 +38,9 @@ public:
     MyWinEventFilter(MyGlobalShortCut *shortcut);
     ~MyWinEventFilter();
     virtual bool nativeEventFilter(const QByteArray &eventType, void *message, long *result);
+
 private:
-    MyGlobalShortCut *m_shortcut;
+    MyGlobalShortCut m_shortcut;
 };
 
 #endif // SHORTCUT_H

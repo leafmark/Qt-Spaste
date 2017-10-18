@@ -114,6 +114,7 @@ void PaintArea::get_image_gray()
 
 void PaintArea::save_image()
 {
+    this->parentWidget()->hide();
     QStringList path = QStandardPaths::standardLocations(QStandardPaths::DesktopLocation);
     QString fileName = path.join(";")+"/new.png";
             fileName = QFileDialog::getSaveFileName(this,(u8"保存截图"),fileName,
@@ -140,7 +141,6 @@ void PaintArea::mousePressEvent(QMouseEvent *event)     //鼠标按下事件
         if(!this->IsSelected)
         {
             this->lastPoint = QCursor::pos();           //获得鼠标指针的当前坐标作为起始坐标
-            this->endPoint = this->lastPoint;
             this->IsSelecting = true;
         }
     }

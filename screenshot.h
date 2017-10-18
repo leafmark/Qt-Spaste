@@ -4,7 +4,6 @@
 
 #include <QApplication>
 #include <QMainWindow>
-#include <Qlabel>
 #include "paintarea.h"
 
 #ifdef WIN32
